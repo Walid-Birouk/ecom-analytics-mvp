@@ -7,6 +7,7 @@ It covers the full lifecycle from data ingestion to transformation, testing, doc
 ---
 
 ## Architecture
+![project archi](screenshots/ecom-dbt.png)
 **Flow:**
 1. **Data Generation & Ingestion**
    - Synthetic e-commerce data generated with Python
