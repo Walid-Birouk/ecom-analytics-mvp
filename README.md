@@ -26,7 +26,6 @@ It covers the full lifecycle from data ingestion to transformation, testing, doc
 
 ## Lineage & tests
 ![dbt Lineage](screenshots/dbt_lineage.png)
-![dbt Tests](screenshots/dbt_test.png)
 
 ## Analytics Dashboard
 ![Metabase Dashboard](screenshots/metabase_dashboard.png)
@@ -74,6 +73,7 @@ Implemented with dbt tests:
 - Not-null constraints
 - Referential integrity between facts and dimensions
 
+![dbt Tests](screenshots/dbt_test.png)
 All tests pass successfully.
 
 ---
