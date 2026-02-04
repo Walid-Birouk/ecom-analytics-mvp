@@ -37,7 +37,6 @@ It covers the full lifecycle from data ingestion to transformation, testing, doc
 - **dbt Core** – transformations, tests, documentation  
 - **Metabase** – BI dashboards  
 - **Docker Compose** – local infrastructure  
-- **Anaconda** – Python environment (Windows-friendly)
 
 ---
 
