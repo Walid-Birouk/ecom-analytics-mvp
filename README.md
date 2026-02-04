@@ -24,6 +24,12 @@ It covers the full lifecycle from data ingestion to transformation, testing, doc
 4. **Analytics & Visualization**
    - Metabase dashboard for business KPIs
 
+## Lineage & tests
+![dbt Lineage](screenshots/dbt_lineage.png)
+![dbt Tests](screenshots/dbt_test.png)
+
+## Analytics Dashboard
+![Metabase Dashboard](screenshots/metabase_dashboard.png)
 ---
 
 ## Tech Stack
