@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Data
+ingest/data/
+*.csv
+
+# dbt
+dbt/ecom_dbt/target/
+dbt/ecom_dbt/dbt_packages/
+dbt/ecom_dbt/logs/
+
+# OS/Editor
+.DS_Store
+.vscode/
+
+#env
+.env
