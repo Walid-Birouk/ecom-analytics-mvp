@@ -54,17 +54,14 @@ def raw_refresh():
 
 @asset(
     description="Run dbt build (models + tests) after raw_refresh",
-    deps=[raw_refresh],  # <- Dagster-native dependency
+    deps=[raw_refresh],
 )
-def dbt_build(dbt: DbtCliResource):
-    """
-    Runs dbt build = dbt run + dbt test.
-    Output is logged in Dagster.
-    """
-    # Stream dbt output into Dagster logs
-    for event in dbt.cli(["build"]).stream():
-        # event is a Dagster event stream object; yielding it attaches logs properly
-        yield event
+def dbt_build():
+    subprocess.run(
+        ["dbt", "build"],
+        cwd=str(DBT_PROJECT_DIR),
+        check=True,
+    )
 
 # ------------------------------------------------------------------------------
 # Job + Schedule
