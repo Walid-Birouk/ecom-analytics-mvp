@@ -18,3 +18,5 @@ dbt/ecom_dbt/logs/
 
 #env
 .env
+
+new_struct/

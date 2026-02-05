@@ -8,6 +8,10 @@ from faker import Faker
 from sqlalchemy import create_engine, text
 
 
+# ------------------------------------------------------------------------------
+# Config / Helpers
+# ------------------------------------------------------------------------------
+
 def env(name: str, default: str) -> str:
     return os.environ.get(name, default)
 
@@ -18,40 +22,47 @@ def make_engine():
     db = env("POSTGRES_DB", "warehouse")
     host = env("POSTGRES_HOST", "localhost")
     port = env("POSTGRES_PORT", "5432")
+
     url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
     return create_engine(url)
 
 
-def ensure_raw_schema(engine):
+def ensure_schema(engine, schema: str):
     with engine.begin() as conn:
-        conn.execute(text("CREATE SCHEMA IF NOT EXISTS raw;"))
+        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema};"))
 
 
-def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
+# ------------------------------------------------------------------------------
+# Data generation
+# ------------------------------------------------------------------------------
+
+def generate_data(seed: int = 42, n_customers: int = 5000, n_products: int = 800, n_orders: int = 20000):
     random.seed(seed)
     np.random.seed(seed)
     fake = Faker()
     Faker.seed(seed)
 
-    # Customers
-    country_city_map = {
-    "FR": ["Paris", "Lyon", "Marseille", "Lille", "Toulouse"],
-    "BE": ["Bruxelles", "Anvers", "Gand", "Liège", "Charleroi"],
-    "DZ": ["Alger", "Oran", "Constantine", "Annaba", "Sétif"],
-    "DE": ["Berlin", "Munich", "Hamburg", "Cologne", "Frankfurt"],
-    "NL": ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "The Hague"],
-    "ES": ["Madrid", "Barcelona", "Valencia", "Seville", "Bilbao"],
-    "IT": ["Milan", "Rome", "Turin", "Naples", "Bologna"],
-    }
-    countries = list(country_city_map.keys())
     now = datetime.now(timezone.utc)
     start = now - timedelta(days=365)
 
+    country_city_map = {
+        "FR": ["Paris", "Lyon", "Marseille", "Lille", "Toulouse"],
+        "BE": ["Bruxelles", "Anvers", "Gand", "Liège", "Charleroi"],
+        "DZ": ["Alger", "Oran", "Constantine", "Annaba", "Sétif"],
+        "DE": ["Berlin", "Munich", "Hamburg", "Cologne", "Frankfurt"],
+        "NL": ["Amsterdam", "Rotterdam", "Utrecht", "Eindhoven", "The Hague"],
+        "ES": ["Madrid", "Barcelona", "Valencia", "Seville", "Bilbao"],
+        "IT": ["Milan", "Rome", "Turin", "Naples", "Bologna"],
+    }
+    countries = list(country_city_map.keys())
+
+    # Customers
     customers = []
     for i in range(n_customers):
         country = random.choice(countries)
         city = random.choice(country_city_map[country])
         created_at = start + timedelta(days=random.randint(0, 364), seconds=random.randint(0, 86400))
+
         customers.append(
             {
                 "customer_id": f"C{i:06d}",
@@ -76,7 +87,7 @@ def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
         )
     products_df = pd.DataFrame(products)
 
-    # Orders
+    # Orders / Items / Payments
     statuses = ["paid", "shipped", "delivered", "cancelled"]
     status_probs = [0.35, 0.25, 0.30, 0.10]
 
@@ -103,7 +114,7 @@ def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
             }
         )
 
-        # Items: 1 to 5 items
+        # 1 to 5 items
         n_items = random.randint(1, 5)
         chosen = products_df.sample(n_items)
 
@@ -112,6 +123,7 @@ def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
             qty = random.randint(1, 3)
             unit_price = float(p["price"])
             total_amount += qty * unit_price
+
             order_items.append(
                 {
                     "order_id": order_id,
@@ -125,6 +137,7 @@ def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
         if status != "cancelled":
             method = np.random.choice(["card", "paypal", "bank_transfer"], p=[0.75, 0.20, 0.05])
             paid_ts = order_ts + timedelta(minutes=random.randint(1, 180))
+
             payments.append(
                 {
                     "order_id": order_id,
@@ -141,14 +154,31 @@ def generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000):
     return customers_df, products_df, orders_df, order_items_df, payments_df
 
 
-def write_csvs(out_dir, dfs):
+# ------------------------------------------------------------------------------
+# IO: CSV + Postgres load
+# ------------------------------------------------------------------------------
+
+def write_csvs(out_dir: str, dfs):
     os.makedirs(out_dir, exist_ok=True)
     names = ["customers", "products", "orders", "order_items", "payments"]
     for name, df in zip(names, dfs):
         df.to_csv(os.path.join(out_dir, f"{name}.csv"), index=False)
 
 
-def load_to_postgres(engine, out_dir):
+def _ensure_table_exists(conn, df: pd.DataFrame, schema: str, table: str):
+    # Creates the table with the right columns if it doesn't exist (0 rows).
+    df.head(0).to_sql(table, conn, schema=schema, if_exists="append", index=False)
+
+
+def _replace_table_data(conn, df: pd.DataFrame, schema: str, table: str):
+    # TRUNCATE keeps the table object (and dependent views) intact.
+    full = f"{schema}.{table}"
+    conn.execute(text(f"TRUNCATE TABLE {full};"))
+    df.to_sql(table, conn, schema=schema, if_exists="append", index=False)
+
+
+def load_to_postgres(engine, out_dir: str):
+    schema = "raw"
     mapping = {
         "customers": "raw_customers",
         "products": "raw_products",
@@ -161,8 +191,9 @@ def load_to_postgres(engine, out_dir):
         for csv_name, table in mapping.items():
             path = os.path.join(out_dir, f"{csv_name}.csv")
             df = pd.read_csv(path)
-            # Replace each time for deterministic runs
-            df.to_sql(table, conn, schema="raw", if_exists="replace", index=False)
+
+            _ensure_table_exists(conn, df, schema=schema, table=table)
+            _replace_table_data(conn, df, schema=schema, table=table)
 
         # Helpful indexes
         conn.execute(text("CREATE INDEX IF NOT EXISTS idx_raw_orders_customer ON raw.raw_orders(customer_id);"))
@@ -170,12 +201,17 @@ def load_to_postgres(engine, out_dir):
         conn.execute(text("CREATE INDEX IF NOT EXISTS idx_raw_payments_order ON raw.raw_payments(order_id);"))
 
 
+# ------------------------------------------------------------------------------
+# Main
+# ------------------------------------------------------------------------------
+
 def main():
     engine = make_engine()
-    ensure_raw_schema(engine)
+    ensure_schema(engine, "raw")
 
     out_dir = os.path.join(os.path.dirname(__file__), "data")
     dfs = generate_data(seed=42, n_customers=5000, n_products=800, n_orders=20000)
+
     write_csvs(out_dir, dfs)
     load_to_postgres(engine, out_dir)
 

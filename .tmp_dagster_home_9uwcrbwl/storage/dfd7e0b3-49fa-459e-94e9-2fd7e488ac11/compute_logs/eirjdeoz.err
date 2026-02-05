@@ -1,0 +1,11 @@
+[32m2026-02-05 17:04:12 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - LOGS_CAPTURED - Started capturing logs in process (pid: 14036).
+[32m2026-02-05 17:04:12 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - raw_refresh - STEP_START - Started execution of step "raw_refresh".
+[32m2026-02-05 17:04:12 +0100[0m - dagster - [34mINFO[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - raw_refresh - Running: C:\Users\Walid\anaconda3\envs\ecom-pipeline\python.exe -u C:\Users\Walid\Documents\ecom-analytics-mvp\ingest\generate_and_load.py
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mINFO[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - raw_refresh - Generated CSVs and loaded into Postgres (schema: raw).
+Tables: raw.raw_customers, raw.raw_products, raw.raw_orders, raw.raw_order_items, raw.raw_payments
+
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - raw_refresh - STEP_OUTPUT - Yielded output "result" of type "Any". (Type check passed).
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - raw_refresh - Writing file at: C:\Users\Walid\Documents\ecom-analytics-mvp\.tmp_dagster_home_9uwcrbwl\storage\raw_refresh using PickledObjectFilesystemIOManager...
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - raw_refresh - ASSET_MATERIALIZATION - Materialized value raw_refresh.
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - raw_refresh - HANDLED_OUTPUT - Handled output "result" using IO manager "io_manager"
+[32m2026-02-05 17:04:34 +0100[0m - dagster - [34mDEBUG[0m - daily_ecom_pipeline - dfd7e0b3-49fa-459e-94e9-2fd7e488ac11 - 14036 - raw_refresh - STEP_SUCCESS - Finished execution of step "raw_refresh" in 22.37s.

@@ -1,0 +1,11 @@
+Running with dbt=1.11.2
+Registered adapter: postgres=1.8.2
+Found 10 models, 12 data tests, 5 sources, 462 macros
+
+Concurrency: 4 threads (target='dev')
+
+1 of 22 START sql view model analytics.stg_customers ........................... [RUN]
+2 of 22 START sql view model analytics.stg_order_items ......................... [RUN]
+3 of 22 START sql view model analytics.stg_orders .............................. [RUN]
+4 of 22 START sql view model analytics.stg_payments ............................ [RUN]
+1 of 22 OK created sql view model analytics.stg_customers ...................... [[32mCREATE VIEW[0m in 0.32s]
